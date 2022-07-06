@@ -275,11 +275,11 @@ void CMedicalPacsDoc::OnContourTracing()
 }
 
 
-
-
 void CMedicalPacsDoc::OnLabeling()
 {
 	CPacsSegment pacs(m_pPacs);
 	pacs.ImageLabeling();
+
+
 	UpdateAllViews(NULL);
 }

@@ -142,6 +142,11 @@ void CBinarizationDlg::OnBnClickedButtonRgbtogray()
 void CBinarizationDlg::OnBnClickedButtonReset()
 {
 	if (changed) {
+		m_sliderThreshold.SetPos(127);
+		m_nThreshold = 127;
+
+		UpdateData(FALSE);
+
 		m_pPacs->MemCopy(m_pOrgPacs->GetBits());
 		Invalidate(TRUE);
 	}

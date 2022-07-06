@@ -54,6 +54,7 @@ public:
 	BYTE* GetBits()		{ return m_bpBits; };
 	int   GetPaletteNums() const;
 
+
 	BOOL IsValid();
 	void Resize(void* pBits, int nNewWidth, int nNewHeight);
 	void RGB_TO_YUV(BYTE R, BYTE G, BYTE B, BYTE& Y, BYTE& U, BYTE& V);

@@ -199,6 +199,7 @@
     <ClInclude Include="CPacsSegment.h" />
     <ClInclude Include="CSharpeningDlg.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="LabelPixels.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="MedicalPacs.h" />
     <ClInclude Include="MedicalPacsDoc.h" />

@@ -4,6 +4,18 @@
 #include "CPacsEnhance.h"
 #include "CPacsColor.h"
 
+//CPacsSegment::CPacsSegment() { };
+
+//CPacsSegment::CPacsSegment(CPacsPtr& pacs) 
+//	: m_pacs(pacs)
+//	, cx(0)
+//	, cy(0)
+//	, minx(0)
+//	, miny(0)
+//	, maxx(0)
+//	, maxy(0) 
+//{};
+
 //이진화
 void CPacsSegment::ImageBinarization(int threshold)
 {
@@ -69,6 +81,7 @@ void CPacsSegment::RGB_TO_GRAY()
 				rgbpDst[j * w + i].g = static_cast<BYTE>(limit(rsum));
 				rgbpDst[j * w + i].b = static_cast<BYTE>(limit(rsum));
 				
+
 			
 			}
 		}
@@ -132,71 +145,70 @@ int  CPacsSegment::ImageBinarizationIterative()
 //	return 0;
 }
 
-
-void CPacsSegment::ImageLabeling() 
+void CPacsSegment::ImageLabeling()
 {
 	const int nWidth = m_pacs->GetWidth();
 	const int nHeight = m_pacs->GetHeight();
 	const int nsize = m_pacs->GetRsize();
-	int nPicth = abs(m_pacs->GetPitch());
+	//int nPicth = abs(m_pacs->GetPitch());
 
 	BYTE* pbSrcBits = m_pacs->GetBits();
-	int* pbTmpBits = new int[nsize]{0}; 
+	int* pnTmpBits = new int[nsize]{0}; 
 	
-	const int maxLabel = 10000;
-	int* eq_tbl = new int[maxLabel * 2]{ 0 }; //등가테이블 생성(초기화 된 상태)
+	const int nMaxLabel = 10000;
+	int* pnEq_tbl = new int[nMaxLabel * 2]{ 0 }; //등가테이블 생성(초기화 된 상태)
 
 	//-------------------------------------------------------------------------
 	// 첫 번째 스캔 - 초기 레이블 지정 및 등가 테이블 생성
 	//-------------------------------------------------------------------------
 
-	int nLabel = 0, maxl, minl, min_eq, max_eq, i, j;
+	int nLabel = 0, nMaxl, n_Minl, n_MinEq, n_MaxEq, i, j;
 
 	for (j = 1; j < nHeight; j++)
 		for (i = 1; i < nWidth; i++)
 		{
-			if (pbSrcBits[j * nPicth + i] == 255)
+			if (pbSrcBits[j * nWidth + i] == 255)
 			{
 				// 바로 위 픽셀과 왼쪽 픽셀 모두에 레이블이 존재하는 경우
-				if ((pbTmpBits[(j - 1) * nPicth + i] != 0) && (pbTmpBits[j * nPicth + (i - 1)] != 0))
+				if ((pnTmpBits[(j - 1) * nWidth + i] != 0) && (pnTmpBits[j * nWidth + (i - 1)] != 0))
 				{
-					if (pbTmpBits[(j - 1) * nPicth + i] == pbTmpBits[j * nPicth + (i - 1)])
+					if (pnTmpBits[(j - 1) * nWidth + i] == pnTmpBits[j * nWidth + (i - 1)])
 					{
 						// 두 레이블이 서로 같은 경우
-						pbTmpBits[j * nPicth + i] = pbTmpBits[(j - 1) * nPicth + i];
+						pnTmpBits[j * nWidth + i] = pnTmpBits[(j - 1) * nWidth + i];
 					}
 					else
 					{
 						// 두 레이블이 서로 다른 경우, 작은 레이블을 부여
-						maxl = max(pbTmpBits[(j - 1) * nPicth + i], pbTmpBits[j * nPicth + (i - 1)]);
-						minl = min(pbTmpBits[(j - 1) * nPicth + i], pbTmpBits[j * nPicth + (i - 1)]);
+						nMaxl = max(pnTmpBits[(j - 1) * nWidth + i], pnTmpBits[j * nWidth + (i - 1)]);
+						n_Minl = min(pnTmpBits[(j - 1) * nWidth + i], pnTmpBits[j * nWidth + (i - 1)]);
 
-						pbTmpBits[j * nPicth + i] = minl;
+						pnTmpBits[j * nWidth + i] = n_Minl;
 
 						// 등가 테이블 조정(위, 왼쪽 조정)
-						min_eq = min(eq_tbl[maxl * 2 + 1], eq_tbl[minl * 2 + 1]);
-						max_eq = max(eq_tbl[maxl * 2 + 1], eq_tbl[minl * 2 + 1]);
+						n_MinEq = min(pnEq_tbl[nMaxl * 2 + 1], pnEq_tbl[n_Minl * 2 + 1]);
+						n_MaxEq = max(pnEq_tbl[nMaxl * 2 + 1], pnEq_tbl[n_Minl * 2 + 1]);
 
-						eq_tbl[(eq_tbl[max_eq * 2 + 1]) * 2 + 1] = min_eq;
+						pnEq_tbl[(pnEq_tbl[n_MaxEq * 2 + 1]) * 2 + 1] = n_MinEq;
 					}
 				}
-				else if (pbTmpBits[(j - 1) * nPicth + i] != 0)
+				else if (pnTmpBits[(j - 1) * nWidth + i] != 0)
 				{
 					// 바로 위 픽셀에만 레이블이 존재할 경우
-					pbTmpBits[j * nPicth + i] = pbTmpBits[(j - 1) * nWidth + i];
+					pnTmpBits[j * nWidth + i] = pnTmpBits[(j - 1) * nWidth + i];
 				}
-				else if (pbTmpBits[j * nPicth + (i - 1)] != 0)
+				else if (pnTmpBits[j * nWidth + (i - 1)] != 0)
 				{
 					// 바로 왼쪽 픽셀에만 레이블이 존재할 경우
-					pbTmpBits[j * nPicth + i] = pbTmpBits[j * nPicth + (i - 1)];
+					pnTmpBits[j * nWidth + i] = pnTmpBits[j * nWidth + (i - 1)];
 				}
 				else
 				{
 					// 이웃에 레이블이 존재하지 않으면 새로운 레이블을 부여
 					nLabel++;
-					pbTmpBits[j * nPicth + i] = nLabel;
-					eq_tbl[nLabel * 2 + 0] = nLabel;
-					eq_tbl[nLabel * 2 + 1] = nLabel;
+					pnTmpBits[j * nWidth + i] = nLabel;
+					pnEq_tbl[nLabel * 2 + 0] = nLabel;
+					pnEq_tbl[nLabel * 2 + 1] = nLabel;
 				}
 			}
 		}
@@ -205,99 +217,89 @@ void CPacsSegment::ImageLabeling()
 	// 등가 테이블 정리 (2번 조정해야 하는 것들 정리)
 	//-------------------------------------------------------------------------
 
-	int temp;
+	int nTempEql;
 	for (i = 1; i <= nLabel; i++)
 	{
-		temp = eq_tbl[i * 2 + 1];
-		if (temp != eq_tbl[i * 2 + 0])
-			eq_tbl[i * 2 + 1] = eq_tbl[temp * 2 + 1];
+		nTempEql = pnEq_tbl[i * 2 + 1];
+		if (nTempEql != pnEq_tbl[i * 2 + 0])
+			pnEq_tbl[i * 2 + 1] = pnEq_tbl[nTempEql * 2 + 1];
 	}
 
 	// 등가 테이블의 레이블을 1부터 차례대로 증가시키기
 
-	int* hash = new int[nLabel + 1]{ 0 };
-	/*memset(hash, 0, sizeof(int) * (nLabel + 1));*/
+	int* pnHash = new int[nLabel + 1]{ 0 };
 
 	for (i = 1; i <= nLabel; i++)
-		hash[eq_tbl[i * 2 + 1]] = eq_tbl[i * 2 + 1];
+		pnHash[pnEq_tbl[i * 2 + 1]] = pnEq_tbl[i * 2 + 1];
 
 	int label_cnt = 1;
 	for (i = 1; i <= nLabel; i++)
-		if (hash[i] != 0)
-			hash[i] = label_cnt++;
+		if (pnHash[i] != 0)
+			pnHash[i] = label_cnt++;
 
 	for (i = 1; i <= nLabel; i++)
-		eq_tbl[i * 2 + 1] = hash[eq_tbl[i * 2 + 1]];
+		pnEq_tbl[i * 2 + 1] = pnHash[pnEq_tbl[i * 2 + 1]];
 
-	delete[] hash;
+	delete[] pnHash;
 
 	//-------------------------------------------------------------------------
 	// 두 번째 스캔 - 등가 테이블을 이용하여 모든 픽셀에 고유의 레이블 부여
 	//-------------------------------------------------------------------------
 	
-	int* pbDstBits = new int[nsize]{ 0 };
+	int* pnDstBits = new int[nsize]{ 0 };
 
-	int idx;
+	int nIdx;
 
 	for (j = 1; j < nHeight; j++) {
 		for (i = 1; i < nWidth; i++)
 		{
-			if (pbTmpBits[j * nWidth + i] != 0)
+			if (pnTmpBits[j * nWidth + i] != 0)
 			{
-				idx = pbTmpBits[j * nWidth + i];
-				pbDstBits[j * nWidth + i] = eq_tbl[i * nWidth + 1];
+				nIdx = pnTmpBits[j * nWidth + i];
+				pnDstBits[j * nWidth + i] = pnEq_tbl[nIdx * 2 + 1];
 			}
 		}
 	}
 
-	m_pacs->SetCopy(pbDstBits);
+	//-------------------------------------------------------------------------
+	// IppLabelInfo 정보 작성
+	//-------------------------------------------------------------------------
 
-	// 객체를 감싸는 사각형 그리기
-	//BYTE* pChangeSrc = m_pacs->GetBits();
-	//
-	//for (j = 1; j < nHeight; j++) {
-	//	for (i = 1; i < nWidth; i++)
-	//	{
-	//		if (pChangeSrc[j * nWidth + i] != 0) {
-	//			pChangeSrc[j * nWidth + i] = 128;
-	//		}
-	//		/*for (int j = info.miny; j <= info.maxy; j++)
-	//			ptr[j][info.minx] = ptr[j][info.maxx] = 128;
+	m_vLabelinfos.resize(label_cnt - 1);
 
-	//		for (int i = info.minx; i <= info.maxx; i++)
-	//			ptr[info.miny][i] = ptr[info.maxy][i] = 128;*/
-	//	}
-	//}
+	LabelInfo* plLabel;
 
-	//m_pacs->SetCopy(pChangeSrc);
+	for (j = 1; j < nHeight; j++)
+		for (i = 1; i < nWidth; i++)
+		{
+			if (pnDstBits[j * nWidth + i] != 0)
+			{
+				plLabel = &m_vLabelinfos.at(pnDstBits[j * nWidth + i] - 1);
+				plLabel->pixels.push_back(make_pair(i, j));
+				plLabel->cx += i;
+				plLabel->cy += j;
 
-	//int* rgbArr = new int[nLabel];
+				if (i < plLabel->minx) plLabel->minx = i;
+				if (i > plLabel->maxx) plLabel->maxx = i;
+				if (j < plLabel->miny) plLabel->miny = j;
+				if (j > plLabel->maxy) plLabel->maxy = j;
+			}
+		}
 
-	//for (int k = 0; k < nLabel; k++) {	//명암 설정
-	//	rgbArr[k] = (k + 1) * static_cast <int> (255 / nLabel);
-	//	TRACE("%d\n", rgbArr[k]);
-	//}
+	for (LabelInfo& label : m_vLabelinfos)
+	{
+		label.cx /= label.pixels.size();
+		label.cy /= label.pixels.size();
+	}
 
-	//for (int h = 0; h < nHeight - 1; h++)
-	//{
-	//	for (int w = 0; w < nWidth - 1; w++)
-	//	{
-	//		if (pbDstBits[h * nWidth + w] == 0)
-	//			pbDstBits[h * nWidth + w] = 0;
-	//	
-	//		else
-	//		{
-	//			int labelValue = pbDstBits[h * nWidth + w] - 1;
-	//			TRACE("\n%d\n", labelValue);
-	//			pbDstBits[h * nWidth + w] = limit(rgbArr[labelValue]);	//그레이스 컬러, 명암
-	//			//pbDstBits[h * nWidth + w] = RGB(limit(rgbArr[labelValue]), limit(rgbArr[labelValue]), limit(rgbArr[labelValue]));	//그레이스 컬러, 명암
-	//			TRACE("%d\n", pbDstBits[h * nWidth + w]);
-	//		}
-	//	}
-	//}
-		
-		
-		
+	for (LabelInfo& info : m_vLabelinfos)
+	{
+		for (int j = info.miny; j <= info.maxy; j++)
+			pbSrcBits[j * nWidth + info.minx] = pbSrcBits[j * nWidth + info.maxx] = 128;
+
+		for (int i = info.minx; i <= info.maxx; i++)
+			pbSrcBits[info.miny * nWidth + i] = pbSrcBits[info.maxy * nWidth + i] = 128;
+	}
 }
 
 
